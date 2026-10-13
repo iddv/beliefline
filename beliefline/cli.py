@@ -208,7 +208,8 @@ def cmd_start(a, cl):
         if not port_free(host, port):
             raise CliError(f"port {port} in use; set BELIEFLINE_PORT")
         log = config.data_dir() / "beliefline.log"
-        with open(log, "ab") as lf:
+        with open(os.open(log, os.O_CREAT | os.O_WRONLY | os.O_APPEND, 0o600), "ab") as lf:
+            os.chmod(log, 0o600)
             p = subprocess.Popen([sys.executable, "-m", "beliefline", "start"], stdout=lf, stderr=lf,
                                  stdin=subprocess.DEVNULL, start_new_session=True,
                                  env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parent.parent)})

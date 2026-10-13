@@ -304,14 +304,29 @@ class Store:
     def c(self):
         conn = getattr(self.local, "conn", None)
         if conn is None:
+            if not self.path.exists():
+                os.close(os.open(self.path, os.O_CREAT | os.O_WRONLY, 0o600))
             conn = sqlite3.connect(self.path, isolation_level=None, timeout=30)
             conn.row_factory = sqlite3.Row
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("PRAGMA synchronous=FULL")
             conn.execute("PRAGMA busy_timeout=30000")
             conn.execute("PRAGMA foreign_keys=ON")
+            self._tighten()
             self.local.conn = conn
         return conn
+
+    def _tighten(self):
+        """Owner-only modes for the database, its -wal/-shm files and the data dir."""
+        for suffix in ("", "-wal", "-shm"):
+            f = Path(str(self.path) + suffix)
+            try:
+                os.chmod(f, 0o600)
+            except FileNotFoundError:
+                pass
+        for d in (self.path.parent, self.path.parent / "backups"):
+            if d.is_dir():
+                os.chmod(d, 0o700)
 
     def close(self):
         conn = getattr(self.local, "conn", None)
@@ -335,7 +350,8 @@ class Store:
         """Create the data dir and schema, migrate forward. Returns True if the DB was created."""
         d = self.path.parent
         try:
-            d.mkdir(parents=True, exist_ok=True)
+            d.mkdir(parents=True, exist_ok=True, mode=0o700)
+            os.chmod(d, 0o700)
             probe = d / ".write-test"
             probe.write_text("x")
             probe.unlink()
@@ -363,7 +379,8 @@ class Store:
         if v == SCHEMA_VERSION:
             return
         bdir = self.path.parent / "backups"
-        bdir.mkdir(exist_ok=True)
+        bdir.mkdir(exist_ok=True, mode=0o700)
+        os.chmod(bdir, 0o700)
         self.backup(str(bdir / f"pre-migrate-v{v}-{time.strftime('%Y%m%d%H%M%S')}.db"))
         while v < SCHEMA_VERSION:
             with self.tx() as c:
