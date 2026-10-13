@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Unit tests, as the README says
-        run: python -m unittest
+        run: python -m unittest discover -s tests -v
       - name: Acceptance suite
         run: |
           python -m pip install pytest==8.3.3

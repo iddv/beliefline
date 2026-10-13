@@ -21,7 +21,7 @@ service; the check waits for it to answer on 127.0.0.1, then stops it.
 
 ```sh
 ./bin/beliefline start -d   # serve: http://127.0.0.1:7700/ (port: BELIEFLINE_PORT)
-python -m unittest   # the product's own tests
+python3 -m unittest discover -s tests -v   # the product's own tests
 python -m pip install pytest==8.3.3 && python -m pytest tests/acceptance   # the acceptance suite
 ```
 
