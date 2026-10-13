@@ -23,10 +23,3 @@ def test_flow_walk_7():
         r=e.cli("explain","evt_99999"); assert r.returncode!=0 and "no event" in r.stderr
     finally:
         e.stop()
-
-
-# Known open item: expected to fail until it is fixed (tests/acceptance/README.md).
-import pytest as _pytest_open  # noqa: E402
-_marks = globals().get('pytestmark', [])
-pytestmark = (list(_marks) if isinstance(_marks, (list, tuple)) else [_marks]) + [
-    _pytest_open.mark.xfail(strict=False, reason='Not complete yet: Flow walk')]
