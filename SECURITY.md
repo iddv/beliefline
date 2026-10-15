@@ -56,16 +56,16 @@ The product was started as its README says and probed while running.
 |---|---|---|---|
 | S1 | medium | No socket timeout: idle or slow connections hold server threads forever | fixed (a test checks it) |
 | S2 | medium | No rate limit or lockout on wrong owner token / agent key | fixed (a test checks it) |
-| S3 | low | Database and data directory readable by other local users | open |
+| S3 | low | Database and data directory readable by other local users | fixed |
 | S4 | low | Owner endpoints return 500 on out-of-range or wrongly typed input | open |
 
 ### S3 (low): Database and data directory readable by other local users
 
-- Where: beliefline/store.py (db created with default umask)
+- Where: beliefline/store.py (db was created with default umask; now 0600, data dir and backups 0700, tightened on every start)
 - What happens: any local user can read all agent memories and the key hashes
 - What should happen: db 0600, dir 0700 (backups and cli.json already are 0600)
 - Reproduce: `ls -la ~/.beliefline  ->  beliefline.db -rw-r--r--, dir drwxrwxr-x`
-- Test: `tests/acceptance/test_database_file_data_dir_not_readable_other_local_users.py` (marked as a known open item)
+- Test: `tests/acceptance/test_database_file_data_dir_not_readable_other_local_users.py` 
 
 ### S4 (low): Owner endpoints return 500 on out-of-range or wrongly typed input
 
@@ -73,7 +73,7 @@ The product was started as its README says and probed while running.
 - What happens: 500 internal error; traceback (year out of range / unhashable list) in the log
 - What should happen: 400 with field and detail
 - Reproduce: `curl -H "Authorization: Bearer $OWNER" '127.0.0.1:7700/v1/agents/a1/report?from=0&to=99999999999999999'; curl -X PUT -d '{"key":["x"],"value":"y"}' /v1/settings`
-- Test: `tests/acceptance/test_out_range_report_time_range_non_string_setting_key_returns.py` (marked as a known open item)
+- Test: `tests/acceptance/test_out_range_report_time_range_non_string_setting_key_returns.py` 
 
 ## Dependency audit
 

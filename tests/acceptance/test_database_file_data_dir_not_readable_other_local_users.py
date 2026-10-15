@@ -17,10 +17,3 @@ def test_db_private():
         assert d & 0o077 == 0, oct(d)
     finally:
         e.stop()
-
-
-# Known open item: expected to fail until it is fixed (tests/acceptance/README.md).
-import pytest as _pytest_open  # noqa: E402
-_marks = globals().get('pytestmark', [])
-pytestmark = (list(_marks) if isinstance(_marks, (list, tuple)) else [_marks]) + [
-    _pytest_open.mark.xfail(strict=False, reason='Known security issue (low): The database file in the data dir is not readable by other local users')]
