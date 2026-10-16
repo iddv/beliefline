@@ -24,10 +24,3 @@ def test_no_500():
         assert call(e, "PUT", "/v1/settings", {"key": ["x"], "value": "y"}) == 400
     finally:
         e.stop()
-
-
-# Known open item: expected to fail until it is fixed (tests/acceptance/README.md).
-import pytest as _pytest_open  # noqa: E402
-_marks = globals().get('pytestmark', [])
-pytestmark = (list(_marks) if isinstance(_marks, (list, tuple)) else [_marks]) + [
-    _pytest_open.mark.xfail(strict=False, reason='Known security issue (low): An out-of-range report time range or a non-string setting key returns 400, never 500')]
