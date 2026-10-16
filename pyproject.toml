@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "beliefline"
-version = "1.0.0"
+version = "0.1.2"
 description = "Append-only memory log for AI agents"
 requires-python = ">=3.9"
 dependencies = []
