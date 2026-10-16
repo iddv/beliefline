@@ -65,7 +65,10 @@ class Ctx:
 # Agent-facing
 
 def h_health(x):
-    return 200, {"ok": True}
+    try:
+        return 200, {"ok": True, "schema_version": x.store.schema_version()}
+    except Exception:
+        raise ApiError(503, "database unreachable")
 
 
 def h_whoami(x):
