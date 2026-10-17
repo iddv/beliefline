@@ -418,7 +418,7 @@ class Store:
         return out
 
     def put_setting(self, key, value):
-        if key not in config.SETTINGS:
+        if not isinstance(key, str) or key not in config.SETTINGS:
             raise ApiError(400, "unknown setting", "key", f"known settings: {', '.join(config.SETTINGS)}")
         allowed = config.SETTINGS[key][1]
         if value not in allowed:
