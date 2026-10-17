@@ -25,8 +25,9 @@ revise:
   models: {}                  # per-stage overrides, same roles as Settings › Models; {} = default
 
 merge:
-  bears_patch: never          # never | ci-green: bears merges its own PR for a `bug`/`docs`
+  bears_patch: ci-green          # never | ci-green: bears merges its own PR for a `bug`/`docs`
                               #   fix when CI is green and the diff is under merge.max_lines
+  kinds: [bug, docs]         # of bug | docs | security | dependency (feature: never)
   max_lines: 80
   dependabot: never           # never | patch | minor: merge Dependabot PRs of that level
                               #   when CI is green (Actions bumps are `patch`)
