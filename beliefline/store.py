@@ -981,6 +981,45 @@ class Store:
                 first_problem = {"agent": a["name"], **problem}
         return {"ok": first_problem is None, "events": total, "agents": report, "problem": first_problem}
 
+    def heads(self):
+        """Each agent's chain head, for copying outside the database."""
+        rows = self.c.execute("SELECT name, last_seq, last_hash FROM agents ORDER BY id").fetchall()
+        return {"heads": [{"agent": r["name"], "last_seq": r["last_seq"], "last_hash": r["last_hash"]} for r in rows]}
+
+    def verify_anchor(self, anchor):
+        """Verify the chains, then check each anchored head is still the event at that seq."""
+        if not isinstance(anchor, dict) or not isinstance(anchor.get("heads"), list):
+            raise ApiError(400, "invalid anchor", "anchor", "expected {heads: [...]}")
+        d = self.verify()
+        found = []
+        for h in anchor["heads"]:
+            if not (isinstance(h, dict) and isinstance(h.get("agent"), str) and isinstance(h.get("last_seq"), int)
+                    and isinstance(h.get("last_hash"), str)):
+                raise ApiError(400, "invalid anchor", "anchor", "each head needs agent, last_seq, last_hash")
+            seq = h["last_seq"]
+            a = self.c.execute("SELECT id FROM agents WHERE name=?", (h["agent"],)).fetchone()
+            row = None if a is None else self.c.execute(
+                "SELECT hash FROM events WHERE agent_id=? AND seq=?", (a["id"], seq)).fetchone()
+            if a is None:
+                why = "agent is missing from the database"
+            elif seq == 0:
+                why = None
+            elif row is None:
+                why = "anchored event is missing (chain truncated?)"
+            elif row["hash"] != h["last_hash"]:
+                why = "anchored event hash differs (events rewritten?)"
+            else:
+                why = None
+            if why:
+                found.append({"agent": h["agent"], "seq": seq, "reason": why})
+        d["anchor_problems"] = found
+        d["anchored_agents"] = len(anchor["heads"])
+        if found:
+            d["ok"] = False
+            if d["problem"] is None:
+                d["problem"] = found[0]
+        return d
+
     def _verify_agent(self, a):
         prev, expect, last_ms, n = ZERO_HASH, 1, 0, 0
         versions, by_key, seen = {}, {}, {}

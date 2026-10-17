@@ -246,6 +246,14 @@ def h_verify(x):
     return 200, x.store.verify(x.q.get("agent") or None)
 
 
+def h_heads(x):
+    return 200, x.store.heads()
+
+
+def h_verify_anchor(x):
+    return 200, x.store.verify_anchor(x.body())
+
+
 def h_backup(x):
     b = x.body()
     if not isinstance(b, dict) or not isinstance(b.get("path"), str) or not b["path"]:
@@ -304,6 +312,8 @@ ROUTES = [
     ("GET", r"/v1/explain/([^/]+)", O, h_explain),
     ("GET", r"/v1/export", O, h_export),
     ("GET", r"/v1/verify", O, h_verify),
+    ("GET", r"/v1/heads", O, h_heads),
+    ("POST", r"/v1/verify/anchor", O, h_verify_anchor),
     ("POST", r"/v1/backup", O, h_backup),
     ("GET", r"/v1/settings", O, h_settings),
     ("PUT", r"/v1/settings", O, h_settings_put),

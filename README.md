@@ -107,6 +107,8 @@ beliefline report <agent> [--day YYYY-MM-DD]              # default yesterday
 beliefline diff <agent> <t1> <t2>
 beliefline export <agent|--all> [--from T] [--to T] > events.jsonl
 beliefline verify [agent]
+beliefline anchor FILE
+beliefline verify --anchor FILE
 beliefline config list | config set <key> <value>
 beliefline backup <file> | restore <file>
 ```
@@ -127,7 +129,7 @@ beliefline report assistant ; beliefline diff assistant "2 days ago 23:00" "yest
 - **Append-only:** no API or CLI path updates or deletes an event; SQLite triggers also reject `UPDATE`/`DELETE` on `events`. Corrections are new `set`/`retract` events.
 - **Hash chain:** each event has a gap-free per-agent `seq` and `hash = SHA-256(prev_hash + canonical JSON of the event)`, where the canonical JSON is the exported event minus `agent`, `prev_hash`, `hash` (keys sorted, compact separators). The genesis `prev_hash` is 64 zeros. Each agent's head (`last_seq`, `last_hash`) is also kept so truncation at the tail is detected.
 - **`verify`** recomputes every chain and also replays derived data: key versions, retract targets, cause references and each action's stored snapshot. There is no separate belief cache: beliefs and counts are always computed from the events. It prints `OK, N events` or the first broken sequence number per agent and exits non-zero.
-  `verify` can catch an event that is edited without recomputing the chain. The hashes are unkeyed SHA-256 stored in the same database, so someone with direct database write access can rewrite events and their hashes and `verify` will not detect that, unless the chain heads were copied somewhere outside the database. To see the naive case yourself, drop the trigger first (`sqlite3 ~/.beliefline/beliefline.db 'drop trigger events_no_update'`), edit an event, run `beliefline verify`.
+  `verify` can catch an event that is edited without recomputing the chain. The hashes are unkeyed SHA-256 stored in the same database, so someone with direct database write access can rewrite events and their hashes and `verify` will not detect that, unless the chain heads were copied somewhere outside the database. `beliefline anchor FILE` writes each agent's `(last_seq, last_hash)` to FILE (it refuses to overwrite); copy it to another disk or a git repo, and later `beliefline verify --anchor FILE` fails, naming the agent and sequence, if the anchored event is gone or changed. Both take `--json`. The anchor is only as safe as where you keep it. To see the naive case yourself, drop the trigger first (`sqlite3 ~/.beliefline/beliefline.db 'drop trigger events_no_update'`), edit an event, run `beliefline verify`.
 - **Concurrency/durability:** writes run in `BEGIN IMMEDIATE` transactions with `synchronous=FULL` (WAL); acknowledged means on disk. Two writers with the same `expected_version`: exactly one wins, the other gets 409.
 
 ## Backup, restore, upgrades

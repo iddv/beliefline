@@ -36,7 +36,7 @@ python -m pip install pytest==8.3.3 && python -m pytest tests/acceptance   # the
 | Path | Holds |
 |---|---|
 | `beliefline/__main__.py` | Runs the package as a command: `python -m beliefline`. |
-| `beliefline/cli.py` | Operator command line. Talks to the local service with the owner token. |
+| `beliefline/cli.py` | Operator command line (includes `anchor FILE` and `verify --anchor FILE`). Talks to the local service with the owner token. |
 | `beliefline/config.py` | Configuration from environment variables (read at call time). |
 | `beliefline/demo.py` | Demo data: two agents, ~300 events over the last 3 days, and the RSVP story. |
 | `beliefline/server.py` | Local HTTP JSON API. |
