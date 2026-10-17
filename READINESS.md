@@ -11,19 +11,19 @@ Where Beliefline stands on the way to production: each item was checked by doing
 | Listens on localhost unless configured | green | binds 127.0.0.1:7700 by default; HOST override works | - |
 | Starts empty; demo data only on an explicit flag or command | green | fresh start has 0 agents, 0 events; demo only via `demo load` | - |
 | First-run admin setup, no default password | green | random owner token printed once, saved 0600, only hash stored; no default password | - |
-| Configuration by environment or file, every option documented | amber | env vars documented in a table, but BELIEFLINE_ACCESS_LOG (turns on request logging) is in the code and not in the README | document BELIEFLINE_ACCESS_LOG (or make request logging default and drop it) |
+| Configuration by environment or file, every option documented | green | every `BELIEFLINE_*` variable read in the code is in the README table (checked by `test_readme_documents_env_vars_and_stop.py`) | none |
 | Data location documented | green | README says data is in BELIEFLINE_DATA_DIR (default ~/.beliefline) and lists contents | - |
 | Backup and restore work end to end | green | backup while running, restore into empty dir with service stopped, verify OK, data identical | - |
 | Data survives a restart | green | data survives SIGTERM and SIGKILL, immediate restart serves at once | - |
 | Starts again at once after a stop or a crash (services) | green | `./bin/beliefline start` on 127.0.0.1:7700 served again 0.11 s after a graceful stop and 0.11 s after a SIGKILL | - |
-| Graceful shutdown | amber | SIGTERM exits in ~50ms and data is intact, but there is no documented stop command | add a `stop` command or document kill/SIGTERM and the pid location |
-| Health endpoint (services) | green | /v1/health answers without login, reads the schema version from the database and returns it with ok; returns 503 if the database cannot be read (test_health_checks_database_reports_schema_version) | document it in the README |
+| Graceful shutdown | green | SIGTERM exits in ~50ms and data is intact; the README documents kill/SIGTERM (no pid file; the pid is printed at start) and the test checks it | none |
+| Health endpoint (services) | green | /v1/health answers without login, reads the schema version from the database and returns it with ok; returns 503 if the database cannot be read and the README documents it (test_health_checks_database_reports_schema_version) | none |
 | Readable logs, no secrets or personal data | green | fixed in this version (its test passes); it was: log has one untimestamped startup line; no request, command or error lines (request log is off unless an undocumented env var is set) | - |
 | Schema changes and upgrades keep the data | amber | schema is versioned (meta.schema_version) with auto pre-migration backup, but only v1 exists and MIGRATIONS is empty, so the upgrade path is untested | ship and test a real v1->v2 migration before the first schema change |
 | CI workflow installs the project and runs the tests | green | .github/workflows/test.yml installs and runs the tests | - |
 | Dependencies locked or pinned | green | no third-party runtime dependencies (standard library only) | - |
 | Sensible .gitignore, no build artefacts in the repository | red | no .gitignore | add a .gitignore for caches, virtual environments, build output and local data files |
-| README covers install, configure, run, upgrade, backup and restore, troubleshooting and limitations | amber | missing sections: troubleshooting, limitations | add troubleshooting, limitations sections |
+| README covers install, configure, run, upgrade, backup and restore, troubleshooting and limitations | green | troubleshooting and limitations sections added | none |
 | The documented test commands run green, as written | green | 34 own test(s) pass; the acceptance suite is green (86 pass, 3 known open item(s) marked); the README's test commands run green as written | - |
 | User-facing docs in plain words | green | no build-process jargon in README, ASSUMPTIONS, SECURITY, READINESS or the tests | - |
 
