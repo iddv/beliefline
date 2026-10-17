@@ -9,7 +9,7 @@ bears, and by any coding agent that reads this file. CLAUDE.md imports this file
 
 - **For:** see SCOPE.md › Users
 - **Does:** Beliefline is an append-only memory log that a developer runs next to their own AI agents. The agent writes every memory change to it and reads its current beliefs back through a local HTTP JSON API. Nothing is ever overwritten or deleted.
-- **Stack:** Python 3.9+, standard library only, SQLite, one process on 127.0.0.1.
+- **Stack:** Python 3.10+, standard library only, SQLite, one process on 127.0.0.1.
 - **Scope:** `SCOPE.md` (users, numbered flows F1–F9, domain rules, definition of done).
   `ASSUMPTIONS.md` lists the questions the idea left open and what this version does.
 
