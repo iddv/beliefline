@@ -28,6 +28,7 @@ Run the tests: `python3 -m unittest discover -s tests -v`
 | `BELIEFLINE_HOST` / `BELIEFLINE_PORT` | `127.0.0.1` / `7700` | bind address |
 | `BELIEFLINE_DATA_DIR` | `~/.beliefline` | database, CLI config, logs, automatic migration backups |
 | `BELIEFLINE_TZ` | (setting) | display zone: `utc`, `local` or an IANA name; overrides `display.time_zone` |
+| `BELIEFLINE_ACCESS_LOG` | (not read) | no effect: every request is always logged (client, method, path without query string, status) to the service's stderr, which is `<data dir>/beliefline.log` under `start -d`. |
 | `BELIEFLINE_URL` | `http://HOST:PORT` | service URL for the CLI |
 | `BELIEFLINE_OWNER_TOKEN` | from `cli.json` | owner token for the CLI |
 | `BELIEFLINE_WRITES_VERSION_CHECK` | `optional` | `optional` / `required`: agent writes must carry `expected_version` |
@@ -41,6 +42,24 @@ Run the tests: `python3 -m unittest discover -s tests -v`
 | `ASOF_SEQ_IN_BATCH` (setting `asof.seq_in_batch`; overrides everything) | `whole_batch` | whole system. `asof #N` where N falls inside a batch: `whole_batch` includes the entire batch (all events of that agent with the same `recorded_at` as #N); `through_seq` includes events only up to N. Applies to every `#seq` time (`asof`, `diff`, `beliefs`). |
 
 Settings whose variable has no `BELIEFLINE_` prefix (listed above) are system-wide and that variable wins over a value stored with `config set`. Settings can also be changed at runtime and are then stored in the database (they win over the env defaults): `beliefline config list`, `beliefline config set retract.allowed_by operator_and_agent`.
+
+## Health check and stopping the service
+
+`GET /v1/health` needs no key and answers `200 {"ok": true, "schema_version": N}` while the service and its database are up, or 503 if the database cannot be read (`beliefline status` uses it).
+
+There is no `stop` command and no pid file. `beliefline start -d` prints the pid when it starts. To stop the service send it SIGTERM (it exits within a moment and the data is intact): `kill <pid>`, or if you lost the pid, `pkill -f "beliefline start"`. In the foreground, Ctrl-C stops it.
+
+## Troubleshooting
+
+- **`port 7700 in use; set BELIEFLINE_PORT`:** another process (maybe an earlier Beliefline) holds the port. Stop it as above or start on another port: `BELIEFLINE_PORT=7701 ./bin/beliefline start -d` (set the same variable for later CLI calls).
+- **Lost owner token:** it is in `~/.beliefline/cli.json`. If that is gone too, run `beliefline token reset` for a new one. After a `restore`, the backup's token applies.
+- **Service will not start:** read the last lines of `<data dir>/beliefline.log`.
+
+## Limitations
+
+- Beliefline records only what agents and the operator report to it. It cannot see memory changes made elsewhere, so its history is only as complete as that reporting.
+- `verify` uses unkeyed SHA-256 hashes stored in the same database. Someone who can write to the database file can rewrite events and hashes together, and `verify` will not notice unless you copied the chain heads somewhere else.
+- It targets one machine: localhost only, no TLS, one process.
 
 ## Connect an agent
 

@@ -5,6 +5,7 @@ pull requests. Add a line under *Unreleased* in the same PR as the change.
 
 ## Unreleased
 
+- `/v1/health` now reads the database and reports `schema_version`; it returns 503 when the database cannot be read, so `start -d` and `status` no longer treat a broken store as ready.
 - Owner endpoints return 400 with field and detail, not 500, for an out-of-range time or sequence number or a non-string setting key.
 - The database, its -wal/-shm files and the log are now owner-only (0600) and the data and backups directories 0700; existing installs are tightened on start.
 - Maintenance files: issue labels, `.github/bears.yml`, `AGENTS.md`, `CLAUDE.md`, CI that runs
