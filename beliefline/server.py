@@ -45,9 +45,15 @@ class Ctx:
         q = self.q
         try:
             if q.get(prefix + "seq") is not None:
-                return {"seq": int(q[prefix + "seq"])}
+                n = int(q[prefix + "seq"])
+                if not 0 <= n <= MAX_EPOCH_MS:
+                    raise ValueError
+                return {"seq": n}
             if q.get(prefix + "at") is not None:
-                return {"at": int(q[prefix + "at"])}
+                n = int(q[prefix + "at"])
+                if not 0 <= n <= MAX_EPOCH_MS:
+                    raise ValueError
+                return {"at": n}
         except ValueError:
             raise ApiError(400, "invalid time", prefix + "at", "at must be epoch milliseconds, seq an integer")
         return None
@@ -56,9 +62,15 @@ class Ctx:
         if self.q.get(name) in (None, ""):
             return None
         try:
-            return int(self.q[name])
+            n = int(self.q[name])
         except ValueError:
             raise ApiError(400, f"invalid {name}", name, "must be an integer")
+        if not 0 <= n <= MAX_EPOCH_MS:
+            raise ApiError(400, f"invalid {name}", name, f"must be between 0 and {MAX_EPOCH_MS} (epoch ms, up to year 9999)")
+        return n
+
+
+MAX_EPOCH_MS = 253402300799999  # 9999-12-31T23:59:59.999Z
 
 
 # ------------------------------------------------------------------ handlers
