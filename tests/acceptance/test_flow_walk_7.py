@@ -5,7 +5,7 @@ Source: "SCOPE.md definition of done"
 Flow: F7 in SCOPE.md.
 """
 
-import json, os, sys, time
+import json, os, re, sys, time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from _helpers.driver import *
 
@@ -18,7 +18,9 @@ def test_flow_walk_7():
         r=e.cli("actions","assistant","--kind","email.send","--from","yesterday 03:00","--to","yesterday 04:00"); assert r.returncode==0
         aid=[w for w in r.stdout.split() if w.startswith("act_")][0]
         r=e.cli("explain",aid); o=r.stdout
-        assert '"yes"' in o and "02:47" in o and '"no"' in o and "22:10" in o and "Caused by" in o and "evt_124" in o,o
+        assert '"yes"' in o and "02:47" in o and '"no"' in o and "22:10" in o and "Caused by" in o,o
+        # the demo's filler events are random, so event ids vary: find the earlier "no" by its line
+        assert re.search(r'evt_\d+ .*22:10.* set rsvp/dana-wedding v1 "no"', o),o
         r=e.cli("history","assistant","rsvp/dana-wedding"); assert '"no"' in r.stdout and '"yes"' in r.stdout
         r=e.cli("explain","evt_99999"); assert r.returncode!=0 and "no event" in r.stderr
     finally:
