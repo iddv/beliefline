@@ -548,7 +548,41 @@ def cmd_export(a, cl):
     sys.stdout.write(cl.call("GET", "/v1/export", p, raw=True))
 
 
+def cmd_anchor(a, cl):
+    d = cl.call("GET", "/v1/heads")
+    try:
+        with open(a.file, "x", encoding="utf-8") as f:
+            f.write(json.dumps(d, indent=2) + "\n")
+    except OSError as e:
+        raise CliError(f"cannot write {a.file}: {e.strerror}")
+    if a.json:
+        return d
+    out(f"Wrote {len(d['heads'])} chain heads to {a.file}")
+    out("This file only protects you if it is stored somewhere the database writer cannot change it (another disk, a git repo).")
+
+
 def cmd_verify(a, cl):
+    if a.anchor:
+        if a.agent:
+            raise CliError("--anchor checks every agent; do not give an agent name")
+        try:
+            with open(a.anchor, encoding="utf-8") as f:
+                anchor = json.load(f)
+        except (OSError, ValueError) as e:
+            raise CliError(f"cannot read anchor file {a.anchor}: {e}")
+        d = cl.call("POST", "/v1/verify/anchor", body=anchor)
+        if a.json:
+            out(json.dumps(d, indent=2))
+            return 0 if d["ok"] else 1
+        for x in d["agents"]:
+            if x["problem"]:
+                out(f"BROKEN: agent {x['agent']} at sequence {x['problem']['seq']}: {x['problem']['reason']}")
+        for x in d["anchor_problems"]:
+            out(f"ANCHOR MISMATCH: agent {x['agent']} at sequence {x['seq']}: {x['reason']}")
+        if d["ok"]:
+            out(f"OK, {d['events']} events; {d['anchored_agents']} anchored heads match")
+            out("Note: this proves the log matches the anchor file, which is only as safe as where the file is stored.")
+        return 0 if d["ok"] else 1
     d = cl.call("GET", "/v1/verify", {"agent": a.agent})
     if a.json:
         out(json.dumps(d, indent=2))
@@ -706,8 +740,11 @@ def build_parser():
     s.add_argument("--all", action="store_true")
     s.add_argument("--from")
     s.add_argument("--to")
+    s = add("anchor", cmd_anchor, "write each agent's chain head to FILE (keep it outside the database)")
+    s.add_argument("file")
     s = add("verify", cmd_verify, "recompute hash chains and derived data")
     s.add_argument("agent", nargs="?")
+    s.add_argument("--anchor", metavar="FILE", help="also compare chain heads against a file written by `anchor`")
     s = add("config", cmd_config, "show or change operator settings")
     ss = s.add_subparsers(dest="sub", required=True)
     ss.add_parser("list")
