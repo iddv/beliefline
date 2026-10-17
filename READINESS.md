@@ -17,7 +17,7 @@ Where Beliefline stands on the way to production: each item was checked by doing
 | Data survives a restart | green | data survives SIGTERM and SIGKILL, immediate restart serves at once | - |
 | Starts again at once after a stop or a crash (services) | green | `./bin/beliefline start` on 127.0.0.1:7700 served again 0.11 s after a graceful stop and 0.11 s after a SIGKILL | - |
 | Graceful shutdown | amber | SIGTERM exits in ~50ms and data is intact, but there is no documented stop command | add a `stop` command or document kill/SIGTERM and the pid location |
-| Health endpoint (services) | amber | /v1/health answers without login but always returns {"ok": true} without touching the database, and is not in the README | check the DB (e.g. schema version) in the health response and document it |
+| Health endpoint (services) | green | /v1/health answers without login, reads the schema version from the database and returns it with ok; returns 503 if the database cannot be read (test_health_checks_database_reports_schema_version) | document it in the README |
 | Readable logs, no secrets or personal data | green | fixed in this version (its test passes); it was: log has one untimestamped startup line; no request, command or error lines (request log is off unless an undocumented env var is set) | - |
 | Schema changes and upgrades keep the data | amber | schema is versioned (meta.schema_version) with auto pre-migration backup, but only v1 exists and MIGRATIONS is empty, so the upgrade path is untested | ship and test a real v1->v2 migration before the first schema change |
 | CI workflow installs the project and runs the tests | green | .github/workflows/test.yml installs and runs the tests | - |
