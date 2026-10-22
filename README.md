@@ -2,7 +2,7 @@
 
 An append-only memory log you run next to your own AI agents. Agents report their memory changes to it over a local HTTP JSON API (or the CLI); Recorded events are append-only: no API or CLI path updates or deletes an event. Other stored data, such as settings and the owner token hash, can be overwritten, and direct database access can alter events undetected.. It records only what is reported to it and cannot see changes made elsewhere, so its history is only as complete as that reporting. You can then ask what an agent believed at any past moment, as far as it was reported, which events led to each belief, and which beliefs it held when it acted (e.g. sent an email at 03:14).
 
-Python 3.9+ standard library only: no dependencies to install.
+Python 3.10+ standard library only: no dependencies to install.
 
 ## Install and start (one command)
 
